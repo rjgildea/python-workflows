@@ -3,6 +3,11 @@ from __future__ import absolute_import, division, print_function
 import contextlib
 import enum
 import logging
+import threading
+try:
+  import queue # Python 3
+except ImportError:
+  import Queue as queue # Python 2
 
 import workflows
 import workflows.logging
@@ -142,6 +147,9 @@ class CommonService(workflows.add_plugin_register_to_class(object)):
 
     # Logger will be overwritten in start() function
     self.log = logging.getLogger(self._logger_name)
+
+    # Initialize internal service event queue
+    self.__queue = queue.PriorityQueue()
 
   def __send_to_frontend(self, data_structure):
     '''Put a message in the pipe for the frontend.'''
