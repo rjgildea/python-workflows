@@ -257,6 +257,26 @@ class CommonService(workflows.add_plugin_register_to_class(object)):
     console.setLevel(logging.CRITICAL)
     root_logger.addHandler(console)
 
+  def _start_pipe_listening_thread(self):
+    if hasattr(self, '__pipe_listening_thread') and self.__pipe_listening_thread:
+      return
+    self.__pipe_listening_thread = threading.Thread(target=self._pipe_listener)
+    self.__pipe_listening_thread.daemon = True
+    self.__pipe_listening_thread.start()
+
+  def _pipe_listener(self):
+    if self.__pipe_commands is None:
+      # can only listen to commands if command queue is defined
+      self.__shutdown = True
+
+    while not self.__shutdown:
+      # Keep reading from input pipe
+      message = self.__pipe_commands.recv()
+      # ...and forward any non-trivial input to the service queue,
+      # from where it will be picked up by the main thread.
+      if message is not None:
+        self.__queue.put((0, message))
+
   def start(self, **kwargs):
     '''Start listening to command queue, process commands in main loop,
        set status, etc...
@@ -273,10 +293,6 @@ class CommonService(workflows.add_plugin_register_to_class(object)):
       self.initializing()
       self._register('command', self.__process_command)
       self._register('transport_message', self.__process_transport)
-
-      if self.__pipe_commands is None:
-        # can only listen to commands if command queue is defined
-        self.__shutdown = True
 
       while not self.__shutdown: # main loop
         self.__update_service_status(self.SERVICE_STATUS_IDLE)
