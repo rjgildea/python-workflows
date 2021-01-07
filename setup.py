@@ -31,6 +31,7 @@ setup(
             "SampleTxnProducer = workflows.services.sample_transaction:SampleTxnProducer",
         ],
         "workflows.transport": [
+            "RabbitTransport = workflows.transport.rabbit_transport:RabbitTransport"
             "StompTransport = workflows.transport.stomp_transport:StompTransport"
         ],
     },
