@@ -17,6 +17,7 @@ def lookup(transport):
 def add_command_line_options(
     parser: Union[argparse.ArgumentParser, optparse.OptionParser],
     transport_argument: bool = False,
+    default_transport: str = default_transport,
 ) -> None:
     """Add command line options for all available transport layer classes."""
     if transport_argument:
